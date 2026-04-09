@@ -2,10 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trading App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>ProJournal</title>
+    <style>
+      /* This kills the white corners and makes it feel like a real app */
+      body, html {
+        margin: 0;
+        padding: 0;
+        background-color: #050505;
+        overflow-x: hidden;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div> <script type="module" src="/src/main.jsx"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
