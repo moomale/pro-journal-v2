@@ -293,3 +293,4 @@ const styles = {
   nav: { height: "80px", background: "rgba(5,5,5,0.8)", backdropFilter: "blur(10px)", display: "flex", justifyContent: "space-around", alignItems: "center", borderTop: "1px solid #111" },
   navItem: { display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", transition: "0.2s" }
 };
+export default App;
