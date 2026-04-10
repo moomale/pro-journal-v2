@@ -1,168 +1,120 @@
 import React, { useState } from "react";
 
-// --- THEME CONSTANTS ---
 const COLORS = {
-  bg: '#050505',
+  bg: '#000000',
   card: '#121214',
   border: '#1C1C1E',
-  accent: '#2E5BFF', // Electric Cobalt
+  accent: '#2E5BFF', 
   textMain: '#FFFFFF',
-  textMuted: '#8E8E93',
-  danger: '#FF3B30'
+  textMuted: '#8E8E93'
 };
 
 export default function App() {
-  const [step, setStep] = useState(0); 
-  const [dna, setDna] = useState({ style: "", risk: 50, edge: "" });
-
-  // --- NAVIGATION ---
-  const next = () => setStep(step + 1);
-  const restart = () => setStep(0);
+  const [step, setStep] = useState(3); // Start at 3 to see the new Dashboard
+  const [showMenu, setShowMenu] = useState(false);
 
   // --- UI COMPONENTS ---
 
-  // 1. TRADER DNA ONBOARDING
-  const OnboardingDNA = () => (
-    <div style={containerStyle}>
-      <div style={progressWrapper}>
-        <div style={{ ...progressFill, width: `${(step / 3) * 100}%` }} />
-      </div>
-
-      {step === 0 && (
-        <div style={fadeCenter}>
-          <div style={logoIcon}>⚡️</div>
-          <h1 style={titleStyle}>Initialize your<br/>Trader DNA</h1>
-          <p style={subTitleStyle}>We don't just track trades. We map your discipline.</p>
-          <button onClick={next} style={primaryButton}>Begin Sequence →</button>
-        </div>
-      )}
-
-      {step === 1 && (
-        <div>
-          <h2 style={titleStyle}>Choose your weapon</h2>
-          <p style={subTitleStyle}>What is your primary market focus?</p>
-          {['Options', 'Crypto', 'Forex', 'Futures'].map(opt => (
-            <div key={opt} onClick={() => {setDna({...dna, style: opt}); next();}} style={dna.style === opt ? activeCard : cardStyle}>
-              <b style={{fontSize: '18px'}}>{opt}</b>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {step === 2 && (
-        <div>
-          <h2 style={titleStyle}>Risk Appetite</h2>
-          <p style={subTitleStyle}>How aggressive is your sizing model?</p>
-          <div style={{textAlign: 'center', margin: '40px 0'}}>
-            <h1 style={{color: COLORS.accent, fontSize: '64px'}}>{dna.risk}%</h1>
-            <p style={{color: COLORS.textMuted}}>Conservative vs Aggressive</p>
-          </div>
-          <input type="range" style={sliderStyle} value={dna.risk} onChange={e => setDna({...dna, risk: e.target.value})} />
-          <button onClick={next} style={primaryButton}>Lock Risk Profile</button>
-        </div>
-      )}
-
-      {step === 3 && <Dashboard dna={dna} onRestart={restart} />}
+  const Ticker = () => (
+    <div style={tickerStyle}>
+      <div style={tickerItem}>SPY <span style={{color: '#00FF9C'}}>+0.64%</span></div>
+      <div style={tickerItem}>QQQ <span style={{color: '#FF3B30'}}>-0.12%</span></div>
+      <div style={tickerItem}>BTC <span style={{color: '#00FF9C'}}>+2.41%</span></div>
     </div>
   );
 
-  return <OnboardingDNA />;
-}
-
-// 2. THE COBALT DASHBOARD
-const Dashboard = ({ dna, onRestart }) => (
-  <div style={{paddingTop: '20px'}}>
-    <div style={headerStyle}>
-      <h1 style={{fontSize: '22px', fontWeight: '900'}}>PRO<span style={{color: COLORS.accent}}>JOURNAL</span></h1>
-      <div style={dnaBadge}>{dna.style} • {dna.risk}% Risk</div>
-    </div>
-
-    {/* Consistency Score - UNIQUE ELEMENT */}
-    <div style={cardStyle}>
-      <div style={{display: 'flex', justifyContent: 'space-between'}}>
+  const Dashboard = () => (
+    <div style={containerStyle}>
+      <Ticker />
+      
+      <div style={headerStyle}>
         <div>
-          <p style={labelStyle}>CONSISTENCY SCORE</p>
-          <h2 style={{fontSize: '32px', margin: '5px 0'}}>84<span style={{fontSize: '14px', color: COLORS.textMuted}}>/100</span></h2>
-          <p style={{fontSize: '12px', color: COLORS.accent}}>+4% from last week</p>
+          <p style={{color: COLORS.textMuted, fontSize: '12px', margin: 0}}>WELCOME BACK</p>
+          <h1 style={{fontSize: '28px', fontWeight: '800', margin: 0}}>Trader</h1>
         </div>
-        <div style={scoreRing}>
-          <div style={scoreInner}>84%</div>
+        <div style={iconGroup}>⚙️ 🔔</div>
+      </div>
+
+      {/* Main Profit Card */}
+      <div style={mainCard}>
+        <p style={labelStyle}>NET PERFORMANCE</p>
+        <h2 style={{fontSize: '42px', fontWeight: '900', margin: '10px 0'}}>$14,205<span style={{fontSize: '20px', color: COLORS.textMuted}}>.00</span></h2>
+        <div style={badgeRow}>
+          <div style={miniBadge}>+12.4% This Month</div>
+          <div style={miniBadge}>7 Day Streak 🔥</div>
         </div>
       </div>
+
+      {/* Consistency Streak (Different from the inspiration) */}
+      <p style={{...labelStyle, marginBottom: '12px'}}>DISCIPLINE STREAK</p>
+      <div style={streakRow}>
+        {[1,1,1,1,0,0,0].map((win, i) => (
+          <div key={i} style={{...streakSquare, background: win ? COLORS.accent : COLORS.border}} />
+        ))}
+      </div>
+
+      {/* The Pulse Chart */}
+      <div style={cardStyle}>
+        <p style={labelStyle}>EQUITY PULSE</p>
+        <div style={{height: '100px', marginTop: '15px', display: 'flex', alignItems: 'flex-end', gap: '4px'}}>
+            {[40, 70, 45, 90, 65, 80, 95].map((h, i) => (
+                <div key={i} style={{flex: 1, background: COLORS.accent, height: `${h}%`, borderRadius: '4px', opacity: i === 6 ? 1 : 0.3}} />
+            ))}
+        </div>
+      </div>
+
+      {/* Quick-Strike FAB */}
+      <div onClick={() => setShowMenu(true)} style={fabStyle}>+</div>
+
+      {/* Slide-up Menu (Glassmorphism) */}
+      {showMenu && (
+        <div style={modalOverlay} onClick={() => setShowMenu(false)}>
+          <div style={menuSheet} onClick={e => e.stopPropagation()}>
+            <div style={dragHandle} />
+            <h2 style={{fontSize: '20px', marginBottom: '25px'}}>New Entry</h2>
+            <div style={menuItem}>⚡️ Quick Trade Log</div>
+            <div style={menuItem}>🎙️ Voice Journal (AI)</div>
+            <div style={menuItem}>✍️ Manual Reflection</div>
+            <button onClick={() => setShowMenu(false)} style={closeButton}>Dismiss</button>
+          </div>
+        </div>
+      )}
     </div>
+  );
 
-    {/* The Pulse (Equity Curve) */}
-    <div style={{...cardStyle, height: '150px', position: 'relative', overflow: 'hidden'}}>
-      <p style={labelStyle}>THE PULSE</p>
-      <svg viewBox="0 0 300 100" style={svgStyle}>
-        <path d="M0,80 Q75,20 150,50 T300,10" fill="none" stroke={COLORS.accent} strokeWidth="4" strokeLinecap="round" />
-        <path d="M0,80 Q75,20 150,50 T300,10 V100 H0 Z" fill="url(#grad)" opacity="0.2" />
-        <defs>
-          <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor={COLORS.accent} />
-            <stop offset="100%" stopColor="transparent" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-
-    {/* Quick Strike Button */}
-    <div style={fabStyle}>+</div>
-
-    <button onClick={onRestart} style={{background: 'transparent', color: '#333', border: 'none', width: '100%', marginTop: '20px'}}>Reset DNA</button>
-  </div>
-);
+  return <Dashboard />;
+}
 
 // --- STYLES ---
 const containerStyle = {
   background: COLORS.bg,
   color: COLORS.textMain,
   minHeight: '100vh',
-  padding: '30px 25px',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Geist", sans-serif',
-  display: 'flex',
-  flexDirection: 'column',
+  padding: '10px 20px 100px 20px',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Inter", sans-serif',
   boxSizing: 'border-box'
 };
 
-const progressWrapper = { background: COLORS.border, height: '4px', borderRadius: '10px', marginBottom: '50px' };
-const progressFill = { background: COLORS.accent, height: '100%', borderRadius: '10px', transition: '0.5s ease' };
+const tickerStyle = { display: 'flex', gap: '20px', padding: '10px 0', borderBottom: `1px solid ${COLORS.border}`, marginBottom: '20px', overflow: 'hidden', whiteSpace: 'nowrap' };
+const tickerItem = { fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px' };
 
-const logoIcon = { fontSize: '50px', marginBottom: '20px' };
-const titleStyle = { fontSize: '32px', fontWeight: '800', marginBottom: '10px', letterSpacing: '-1px' };
-const subTitleStyle = { color: COLORS.textMuted, fontSize: '17px', lineHeight: '1.5', marginBottom: '40px' };
-const labelStyle = { color: COLORS.textMuted, fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px' };
-
-const cardStyle = {
-  background: COLORS.card,
-  padding: '24px',
-  borderRadius: '24px',
-  border: `1px solid ${COLORS.border}`,
-  marginBottom: '16px',
-  transition: '0.2s'
-};
-
-const activeCard = { ...cardStyle, borderColor: COLORS.accent, boxShadow: `0 0 20px rgba(46, 91, 255, 0.2)` };
-
-const primaryButton = {
-  background: COLORS.accent,
-  color: '#fff',
-  border: 'none',
-  padding: '20px',
-  borderRadius: '20px',
-  fontSize: '17px',
-  fontWeight: 'bold',
-  width: '100%',
-  marginTop: 'auto',
-  boxShadow: `0 10px 30px rgba(46, 91, 255, 0.3)`
-};
-
-const sliderStyle = { width: '100%', accentColor: COLORS.accent, height: '8px' };
 const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' };
-const dnaBadge = { background: COLORS.border, padding: '6px 12px', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', color: COLORS.textMuted };
+const iconGroup = { display: 'flex', gap: '20px', fontSize: '20px' };
 
-const scoreRing = { width: '70px', height: '70px', borderRadius: '50%', border: `4px solid ${COLORS.border}`, borderTopColor: COLORS.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const scoreInner = { fontSize: '14px', fontWeight: 'bold' };
-const svgStyle = { width: '100%', height: '100px', marginTop: '10px' };
-const fabStyle = { position: 'fixed', bottom: '30px', right: '30px', background: COLORS.accent, width: '60px', height: '60px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', fontWeight: 'bold', boxShadow: '0 10px 20px rgba(0,0,0,0.5)' };
-const fadeCenter = { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' };
+const mainCard = { background: `linear-gradient(135deg, ${COLORS.card} 0%, #000 100%)`, padding: '30px', borderRadius: '32px', border: `1px solid ${COLORS.border}`, marginBottom: '25px' };
+const labelStyle = { color: COLORS.textMuted, fontSize: '10px', fontWeight: 'bold', letterSpacing: '1.5px' };
+const badgeRow = { display: 'flex', gap: '10px', marginTop: '15px' };
+const miniBadge = { background: '#1C1C1E', padding: '6px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: 'bold' };
+
+const streakRow = { display: 'flex', gap: '8px', marginBottom: '30px' };
+const streakSquare = { flex: 1, height: '35px', borderRadius: '8px', transition: '0.3s' };
+
+const cardStyle = { background: COLORS.card, padding: '20px', borderRadius: '24px', border: `1px solid ${COLORS.border}` };
+
+const fabStyle = { position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)', background: COLORS.accent, width: '70px', height: '70px', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', boxShadow: '0 15px 35px rgba(46, 91, 255, 0.4)', cursor: 'pointer', zIndex: 10 };
+
+const modalOverlay = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'flex-end' };
+const menuSheet = { background: '#111', width: '100%', padding: '30px', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', border: `1px solid ${COLORS.border}`, boxSizing: 'border-box' };
+const dragHandle = { width: '40px', height: '4px', background: '#333', borderRadius: '10px', margin: '0 auto 20px auto' };
+const menuItem = { padding: '20px', background: '#1C1C1E', borderRadius: '16px', marginBottom: '10px', fontWeight: 'bold', fontSize: '16px' };
+const closeButton = { width: '100%', background: 'transparent', color: COLORS.textMuted, border: 'none', padding: '15px', marginTop: '10px' };
