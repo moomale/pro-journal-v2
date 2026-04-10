@@ -1,124 +1,179 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function App() {
-  const [step, setStep] = useState(0); 
-  const [userData, setUserData] = useState({ style: "", goal: 10 });
+  // --- STATE ---
+  const [step, setStep] = useState(0); // 0: Landing, 1: Style, 2: Goal, 3: Dashboard
+  const [userData, setUserData] = useState({
+    style: "",
+    goal: 15,
+    trades: []
+  });
 
-  // --- UNIQUE DESIGN COMPONENTS ---
+  // --- NAVIGATION HELPERS ---
+  const nextStep = () => setStep(step + 1);
+  const prevStep = () => setStep(step - 1);
 
-  const OnboardingWrapper = ({ children, title, subtitle }) => (
-    <div style={layoutStyle}>
-      <div style={headerStyle}>
-        <div style={brandStyle}>PRO<span style={{color: '#B87333'}}>JOURNAL</span></div>
-        <div style={stepIndicator}>{step}/4</div>
+  // --- UI COMPONENTS ---
+
+  // SCREEN 0: LANDING (The "Your Best Trading Day" screen)
+  const Landing = () => (
+    <div style={containerStyle}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
+         <h1 style={{ fontSize: '42px', fontWeight: '900', marginBottom: '16px', letterSpacing: '-1.5px' }}>Your best<br/>trading day.</h1>
+         <p style={{ color: '#8E8E93', fontSize: '19px', fontWeight: '500' }}>Prepare. Execute. Reflect.</p>
       </div>
-      <div style={contentStyle}>
-        <h1 style={mainTitle}>{title}</h1>
-        <p style={descriptionStyle}>{subtitle}</p>
-        {children}
-      </div>
-      <div style={footerStyle}>
-        <button onClick={() => setStep(step + 1)} style={nextButtonStyle}>Next Phase —></button>
-      </div>
+      <button onClick={nextStep} style={primaryButtonStyle}>Get Started →</button>
+      <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px', color: '#8E8E93' }}>Already have an account? <span style={{color: '#fff', fontWeight: 'bold'}}>Sign in</span></p>
     </div>
   );
 
-  // --- SCREENS ---
-
-  if (step === 0) return (
-    <div style={landingStyle}>
-      <div style={heroCircle} />
-      <h1 style={{fontSize: '56px', letterSpacing: '-3px', lineHeight: '0.9', margin: '0 0 20px 0'}}>MASTER<br/>THE<br/>BIAS.</h1>
-      <p style={{color: '#666', marginBottom: '40px'}}>Precision journaling for the 1%.</p>
-      <button onClick={() => setStep(1)} style={startButtonStyle}>Initialize System</button>
-    </div>
-  );
-
-  if (step === 1) return (
-    <OnboardingWrapper title="Define your edge." subtitle="Choose your primary execution methodology.">
-      <div style={gridStyle}>
-        {['Institutional', 'Retail Flow', 'Algo-Driven', 'Arbitrage'].map(opt => (
-          <div key={opt} onClick={() => setUserData({...userData, style: opt})} 
-               style={userData.style === opt ? activeBoxStyle : boxStyle}>
-            {opt}
+  // SCREEN 1: STYLE SELECTION
+  const StyleSelection = () => (
+    <div style={containerStyle}>
+      <ProgressBar progress={33} onBack={prevStep} />
+      <h2 style={titleStyle}>👋 Let's build your trading plan</h2>
+      <p style={subTitleStyle}>First, how do you trade?</p>
+      
+      {['Day Trading', 'Swing Trading', 'Position Trading', 'Scalping'].map((opt) => (
+        <div key={opt} onClick={() => setUserData({...userData, style: opt})} style={userData.style === opt ? activeCardStyle : cardStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{opt}</div>
+              <div style={{ fontSize: '12px', color: '#8E8E93', marginTop: '4px' }}>
+                {opt === 'Day Trading' ? 'Buy and sell within the same day' : 'Hold positions for days or weeks'}
+              </div>
+            </div>
+            {userData.style === opt && <div style={{ color: '#00ff9c', fontSize: '20px' }}>●</div>}
           </div>
+        </div>
+      ))}
+
+      <button onClick={nextStep} disabled={!userData.style} style={{ ...primaryButtonStyle, opacity: userData.style ? 1 : 0.5, marginTop: 'auto' }}>Continue →</button>
+    </div>
+  );
+
+  // SCREEN 2: GOAL SETTING
+  const GoalSetting = () => (
+    <div style={containerStyle}>
+      <ProgressBar progress={66} onBack={prevStep} />
+      <h2 style={titleStyle}>What is your weekly profit target?</h2>
+      <p style={subTitleStyle}>A realistic target keeps you grounded.</p>
+      
+      <div style={{ textAlign: 'center', margin: '60px 0' }}>
+        <h1 style={{ fontSize: '72px', fontWeight: '800', margin: 0 }}>{userData.goal}%</h1>
+        <p style={{ color: '#8E8E93', fontSize: '14px' }}>Tap to type any amount</p>
+      </div>
+
+      <input 
+        type="range" min="1" max="50" value={userData.goal} 
+        onChange={(e) => setUserData({...userData, goal: e.target.value})}
+        style={sliderStyle}
+      />
+      
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px' }}>
+        {['USD', 'EUR', 'GBP', '%'].map(u => (
+          <div key={u} style={{ padding: '8px 16px', background: u === '%' ? '#fff' : '#1C1C1E', color: u === '%' ? '#000' : '#fff', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold' }}>{u}</div>
         ))}
       </div>
-    </OnboardingWrapper>
-  );
 
-  if (step === 2) return (
-    <OnboardingWrapper title="The Goal." subtitle="What is your projected weekly growth?">
-       <div style={{marginTop: '40px'}}>
-          <input type="range" min="1" max="50" style={sliderStyle} onChange={(e) => setUserData({...userData, goal: e.target.value})} />
-          <div style={{fontSize: '80px', fontWeight: '200', color: '#B87333'}}>{userData.goal}%</div>
-       </div>
-    </OnboardingWrapper>
-  );
-
-  if (step === 3) return (
-    <div style={layoutStyle}>
-       <h1 style={mainTitle}>Why you can't "Sign Up" yet...</h1>
-       <p style={descriptionStyle}>To activate "Live Sign-up," we need to connect a <b>Database</b>.</p>
-       <div style={infoCard}>
-          <h3>Developer Note:</h3>
-          <p>You need an <b>API Key</b> from a service like <b>Clerk.com</b> or <b>Firebase</b>. These are the "keys" that let people actually create accounts.</p>
-          <p>For now, I have created this <b>Simulated Account</b> for you.</p>
-       </div>
-       <button onClick={() => alert("Ready to connect Database?")} style={nextButtonStyle}>Learn to connect Database</button>
+      <button onClick={nextStep} style={{ ...primaryButtonStyle, marginTop: 'auto' }}>Continue →</button>
     </div>
   );
+
+  // SCREEN 3: DASHBOARD REVEAL
+  const Dashboard = () => (
+    <div style={{ ...containerStyle, padding: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: '900' }}>Pro<span style={{color: '#00ff9c'}}>Journal</span></h1>
+        <div style={{ display: 'flex', gap: '15px', fontSize: '20px' }}>👁️ 📋 ⚙️</div>
+      </div>
+
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+           <p style={{ margin: 0, color: '#8E8E93', fontSize: '12px', fontWeight: 'bold' }}>TOTAL NET P/L</p>
+           <p style={{ margin: 0, color: '#8E8E93', fontSize: '12px' }}>All time ▾</p>
+        </div>
+        <h2 style={{ fontSize: '36px', margin: '10px 0', color: '#00ff9c', fontWeight: '800' }}>$26,918.66</h2>
+      </div>
+
+      <div style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1C1C1E' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ background: '#2C2C2E', padding: '10px', borderRadius: '12px' }}>📓</div>
+          <p style={{ margin: 0, fontWeight: 'bold' }}>Morning check-in</p>
+        </div>
+        <span style={{ color: '#8E8E93' }}>→</span>
+      </div>
+
+      <button onClick={() => setStep(0)} style={{ ...cardStyle, width: '100%', background: 'transparent', border: '1px dashed #444', color: '#8E8E93' }}>
+        Restart Onboarding (Debug)
+      </button>
+    </div>
+  );
+
+  // ROUTER
+  if (step === 0) return <Landing />;
+  if (step === 1) return <StyleSelection />;
+  if (step === 2) return <GoalSetting />;
+  return <Dashboard />;
 }
 
-// --- DISTINCTIVE STYLES ---
-
-const layoutStyle = {
-  background: '#0a0a0a', color: '#fff', minHeight: '100vh',
-  padding: '40px', display: 'flex', flexDirection: 'column',
-  fontFamily: '"Helvetica Neue", sans-serif'
+// --- STYLES ---
+const containerStyle = {
+  background: '#000',
+  color: '#fff',
+  minHeight: '100vh',
+  padding: '40px 25px',
+  display: 'flex',
+  flexDirection: 'column',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif',
+  boxSizing: 'border-box'
 };
 
-const landingStyle = {
-  ...layoutStyle, justifyContent: 'center', alignItems: 'flex-start',
-  overflow: 'hidden', position: 'relative'
+const titleStyle = { fontSize: '28px', fontWeight: '800', marginBottom: '8px', letterSpacing: '-0.5px' };
+const subTitleStyle = { color: '#8E8E93', fontSize: '16px', marginBottom: '32px', lineHeight: '1.4' };
+
+const cardStyle = {
+  background: '#1C1C1E',
+  padding: '20px',
+  borderRadius: '20px',
+  border: '1px solid #2C2C2E',
+  marginBottom: '12px',
+  cursor: 'pointer'
 };
 
-const heroCircle = {
-  position: 'absolute', top: '-10%', right: '-20%',
-  width: '400px', height: '400px', borderRadius: '50%',
-  background: 'radial-gradient(circle, rgba(184,115,51,0.2) 0%, rgba(0,0,0,0) 70%)'
+const activeCardStyle = {
+  ...cardStyle,
+  border: '1px solid #00ff9c',
+  background: 'rgba(0, 255, 156, 0.05)'
 };
 
-const brandStyle = { fontWeight: '900', fontSize: '18px', letterSpacing: '2px' };
-
-const mainTitle = { fontSize: '36px', fontWeight: '800', marginBottom: '10px' };
-const descriptionStyle = { color: '#666', fontSize: '14px', marginBottom: '40px' };
-
-const gridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' };
-
-const boxStyle = {
-  border: '1px solid #222', padding: '30px 15px', borderRadius: '4px',
-  textAlign: 'center', fontSize: '12px', textTransform: 'uppercase',
-  letterSpacing: '1px', transition: '0.3s'
+const primaryButtonStyle = {
+  background: '#fff',
+  color: '#000',
+  border: 'none',
+  padding: '18px',
+  borderRadius: '18px',
+  fontSize: '17px',
+  fontWeight: 'bold',
+  width: '100%',
+  cursor: 'pointer'
 };
 
-const activeBoxStyle = { ...boxStyle, background: '#fff', color: '#000', borderColor: '#fff' };
-
-const nextButtonStyle = {
-  background: 'none', color: '#B87333', border: '1px solid #B87333',
-  padding: '15px 30px', borderRadius: '40px', fontWeight: 'bold', cursor: 'pointer'
+const sliderStyle = {
+  width: '100%',
+  height: '6px',
+  borderRadius: '5px',
+  background: '#2C2C2E',
+  outline: 'none',
+  WebkitAppearance: 'none',
+  accentColor: '#00ff9c'
 };
 
-const startButtonStyle = {
-  background: '#fff', color: '#000', border: 'none', padding: '20px 40px',
-  borderRadius: '4px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px'
-};
-
-const infoCard = {
-  background: '#111', padding: '20px', borderRadius: '12px', border: '1px solid #222',
-  marginTop: '20px', lineHeight: '1.6', fontSize: '14px', color: '#ccc'
-};
-
-const sliderStyle = { width: '100%', accentColor: '#B87333' };
-const headerStyle = { display: 'flex', justifyContent: 'space-between', marginBottom: '60px' };
-const stepIndicator = { color: '#444', fontWeight: 'bold' };
+const ProgressBar = ({ progress, onBack }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '40px' }}>
+    <button onClick={onBack} style={{ background: '#1C1C1E', border: 'none', color: '#fff', padding: '8px 12px', borderRadius: '10px' }}>‹</button>
+    <div style={{ background: '#1C1C1E', height: '6px', flex: 1, borderRadius: '10px' }}>
+      <div style={{ background: '#00ff9c', height: '100%', width: `${progress}%`, borderRadius: '10px', transition: '0.4s ease' }} />
+    </div>
+  </div>
+);
