@@ -1,145 +1,131 @@
 import React, { useState, useEffect } from "react";
 
-// --- Helpers ---
-const pnlCalc = (t) => {
-  const e = parseFloat(t.entry);
-  const x = parseFloat(t.exit);
-  const q = parseFloat(t.quantity);
-  if (isNaN(e) || isNaN(x) || isNaN(q)) return 0;
-  return t.side === "buy" ? (x - e) * q : (e - x) * q;
-};
-
 export default function App() {
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [showModal, setShowModal] = useState(false);
-  const [trades, setTrades] = useState(() => {
-    const saved = localStorage.getItem("pro_journal_trades");
-    return saved ? JSON.parse(saved) : [];
+  // --- STATE MANAGEMENT ---
+  const [step, setStep] = useState(0); // 0 = Landing, 1 = Style, 2 = Experience, 3 = Goal, 4 = Dashboard
+  const [userData, setUserData] = useState({
+    style: "",
+    experience: "",
+    goal: 15,
   });
 
-  const [formData, setFormData] = useState({ symbol: "", entry: "", exit: "", quantity: "", side: "buy" });
+  // --- UI COMPONENTS ---
 
-  useEffect(() => {
-    localStorage.setItem("pro_journal_trades", JSON.stringify(trades));
-  }, [trades]);
-
-  const addTrade = () => {
-    if (!formData.symbol || !formData.entry || !formData.exit) return alert("Fill all fields");
-    setTrades([formData, ...trades]);
-    setFormData({ symbol: "", entry: "", exit: "", quantity: "", side: "buy" });
-    setShowModal(false);
-  };
-
-  const totalPnL = trades.reduce((sum, t) => sum + pnlCalc(t), 0);
-  const winRate = trades.length > 0 
-    ? (trades.filter(t => pnlCalc(t) > 0).length / trades.length * 100).toFixed(0) 
-    : 0;
-
-  // DYNAMIC GRAPH LOGIC
-  const getGraphPath = () => {
-    if (trades.length === 0) return "M 0 50 L 300 50"; // Flat line if no trades
-    const history = [...trades].reverse();
-    let currentBalance = 50; 
-    let path = "M 0 50";
-    const step = 300 / history.length;
-    
-    history.forEach((t, i) => {
-      const pnl = pnlCalc(t);
-      currentBalance -= (pnl / 100); // Visual scaling
-      path += ` L ${(i + 1) * step} ${Math.max(10, Math.min(90, currentBalance))}`;
-    });
-    return path;
-  };
-
-  return (
-    <div style={{ background: "#050505", color: "#fff", minHeight: "100vh", fontFamily: "sans-serif", paddingBottom: "100px" }}>
-      {/* Header - Kept exactly the same */}
-      <div style={{ padding: "30px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "900" }}>PRO<span style={{ color: "#00ff9c" }}>JOURNAL</span></h1>
-        <button onClick={() => setShowModal(true)} style={{ background: "#00ff9c", color: "#000", border: "none", padding: "10px 20px", borderRadius: "12px", fontWeight: "bold" }}>+ LOG TRADE</button>
+  // 1. LANDING SCREEN
+  const Landing = () => (
+    <div style={containerStyle}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+         <h1 style={{ fontSize: '42px', fontWeight: '900', marginBottom: '10px' }}>Your best<br/>trading day.</h1>
+         <p style={{ color: '#888', fontSize: '18px' }}>Prepare. Execute. Reflect.</p>
       </div>
-
-      <div style={{ padding: "0 20px" }}>
-        {activeTab === "dashboard" && (
-          <>
-            {/* Stats Card */}
-            <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: "30px", padding: "30px", border: "1px solid rgba(255,255,255,0.05)", marginBottom: "20px" }}>
-              <p style={{ margin: 0, color: "#999", fontSize: "12px", fontWeight: "bold" }}>TOTAL PROFIT</p>
-              <h2 style={{ fontSize: "48px", margin: "10px 0", color: totalPnL >= 0 ? "#00ff9c" : "#ff4444" }}>
-                ${totalPnL.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </h2>
-              <div style={{ display: "flex", gap: "20px" }}>
-                <div><p style={{ margin: 0, color: "#999", fontSize: "10px" }}>WIN RATE</p><p style={{ margin: 0, fontWeight: "bold", color: "#fff" }}>{winRate}%</p></div>
-                <div><p style={{ margin: 0, color: "#999", fontSize: "10px" }}>TRADES</p><p style={{ margin: 0, fontWeight: "bold", color: "#fff" }}>{trades.length}</p></div>
-              </div>
-            </div>
-
-            {/* Performance Curve - Now Dynamic */}
-            <div style={{ background: "rgba(255,255,255,0.02)", borderRadius: "30px", padding: "20px", border: "1px solid #111", marginBottom: "20px" }}>
-              <p style={{ margin: "0 0 15px 0", color: "#999", fontSize: "12px", fontWeight: "bold" }}>EQUITY CURVE</p>
-              <svg viewBox="0 0 300 100" style={{ width: "100%", height: "100px" }}>
-                <path d={getGraphPath()} fill="none" stroke="#00ff9c" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-
-            {/* AI Section - Fixed Contrast */}
-            <div style={{ background: "#111", borderRadius: "24px", padding: "20px", border: "1px solid #222" }}>
-              <p style={{ margin: "0 0 10px 0", color: "#00ff9c", fontSize: "12px", fontWeight: "bold" }}>AI INSIGHTS</p>
-              <p style={{ margin: 0, color: "#fff", fontSize: "14px", lineHeight: "1.5" }}>
-                {trades.length < 3 
-                  ? `Log ${3 - trades.length} more trades for a behavioral analysis.` 
-                  : "Analysis complete: Your win rate is highest during the London session."}
-              </p>
-            </div>
-          </>
-        )}
-
-        {activeTab === "trades" && (
-          <div>
-            <h3 style={{ color: "#fff" }}>Trade History</h3>
-            {trades.map((t, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "15px 0", borderBottom: "1px solid #222" }}>
-                <div>
-                  <p style={{ margin: 0, fontWeight: "bold", color: "#fff" }}>{t.symbol.toUpperCase()}</p>
-                  <p style={{ margin: 0, fontSize: "12px", color: "#999" }}>{t.side.toUpperCase()} @ {t.entry}</p>
-                </div>
-                <p style={{ fontWeight: "bold", color: pnlCalc(t) >= 0 ? "#00ff9c" : "#ff4444" }}>
-                  {pnlCalc(t) >= 0 ? "+" : ""}${pnlCalc(t).toFixed(2)}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Modal - Fixed Contrast */}
-      {showModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
-          <div style={{ background: "#111", width: "90%", padding: "30px", borderRadius: "24px", border: "1px solid #333" }}>
-            <h2 style={{ color: "#fff", marginTop: 0 }}>Log New Trade</h2>
-            <input placeholder="Symbol" style={inputStyle} onChange={e => setFormData({...formData, symbol: e.target.value})} />
-            <div style={{ display: "flex", gap: "10px" }}>
-              <input placeholder="Entry" type="number" style={inputStyle} onChange={e => setFormData({...formData, entry: e.target.value})} />
-              <input placeholder="Exit" type="number" style={inputStyle} onChange={e => setFormData({...formData, exit: e.target.value})} />
-            </div>
-            <input placeholder="Quantity" type="number" style={inputStyle} onChange={e => setFormData({...formData, quantity: e.target.value})} />
-            <select style={inputStyle} onChange={e => setFormData({...formData, side: e.target.value})}>
-              <option value="buy">BUY / LONG</option>
-              <option value="sell">SELL / SHORT</option>
-            </select>
-            <button onClick={addTrade} style={{ width: "100%", background: "#00ff9c", color: "#000", border: "none", padding: "15px", borderRadius: "12px", fontWeight: "bold" }}>SAVE TRADE</button>
-            <button onClick={() => setShowModal(false)} style={{ width: "100%", background: "transparent", color: "#fff", border: "none", marginTop: "15px", opacity: 0.5 }}>Cancel</button>
-          </div>
-        </div>
-      )}
-
-      {/* Nav - Kept exactly the same */}
-      <nav style={{ position: "fixed", bottom: 0, width: "100%", height: "80px", background: "rgba(10,10,10,0.8)", backdropFilter: "blur(10px)", display: "flex", justifyContent: "space-around", alignItems: "center", borderTop: "1px solid #222" }}>
-        <div onClick={() => setActiveTab("dashboard")} style={{ opacity: activeTab === "dashboard" ? 1 : 0.4, textAlign: "center", color: "#fff" }}>📊<br/><span style={{fontSize:'10px'}}>DASHBOARD</span></div>
-        <div onClick={() => setActiveTab("trades")} style={{ opacity: activeTab === "trades" ? 1 : 0.4, textAlign: "center", color: "#fff" }}>🧾<br/><span style={{fontSize:'10px'}}>TRADES</span></div>
-      </nav>
+      <button onClick={() => setStep(1)} style={primaryButtonStyle}>Get Started →</button>
+      <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px', color: '#888' }}>Already have an account? <span style={{color: '#fff', fontWeight: 'bold'}}>Sign in</span></p>
     </div>
   );
+
+  // 2. STYLE SELECTION
+  const StyleSelection = () => (
+    <div style={containerStyle}>
+      <ProgressBar progress={25} />
+      <h2 style={titleStyle}>👋 Let's build your trading plan</h2>
+      <p style={subTitleStyle}>First, how do you trade?</p>
+      
+      {['Day Trading', 'Swing Trading', 'Position Trading', 'Scalping'].map((option) => (
+        <div key={option} onClick={() => setUserData({...userData, style: option})} style={userData.style === option ? activeCardStyle : cardStyle}>
+          <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{option}</div>
+          <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>{option === 'Day Trading' ? 'Buy and sell within the same day' : 'Hold for days or weeks'}</div>
+        </div>
+      ))}
+
+      <button onClick={() => setStep(2)} disabled={!userData.style} style={{ ...primaryButtonStyle, opacity: userData.style ? 1 : 0.5 }}>Continue →</button>
+    </div>
+  );
+
+  // 3. GOAL SETTING
+  const GoalSetting = () => (
+    <div style={containerStyle}>
+      <ProgressBar progress={75} />
+      <h2 style={titleStyle}>What is your weekly profit target?</h2>
+      <div style={{ textAlign: 'center', margin: '60px 0' }}>
+        <h1 style={{ fontSize: '80px', margin: 0 }}>{userData.goal}%</h1>
+        <p style={{ color: '#888' }}>Tap to type any amount</p>
+      </div>
+      <input 
+        type="range" min="1" max="100" value={userData.goal} 
+        onChange={(e) => setUserData({...userData, goal: e.target.value})}
+        style={{ width: '100%', accentColor: '#00ff9c', marginBottom: '40px' }}
+      />
+      <button onClick={() => setStep(4)} style={primaryButtonStyle}>Continue →</button>
+    </div>
+  );
+
+  // 4. THE REVEAL (DASHBOARD PREVIEW)
+  const DashboardPreview = () => (
+    <div style={{ ...containerStyle, justifyContent: 'center', textAlign: 'center' }}>
+      <h2 style={titleStyle}>Profile Ready! 🚀</h2>
+      <div style={cardStyle}>
+        <p style={{ color: '#888', marginBottom: '10px' }}>YOUR TARGETS</p>
+        <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+          <div><p style={{fontSize: '12px', color: '#888'}}>Style</p><b>{userData.style}</b></div>
+          <div><p style={{fontSize: '12px', color: '#888'}}>Goal</p><b>{userData.goal}% / week</b></div>
+        </div>
+      </div>
+      <button onClick={() => alert("Transitioning to Dashboard...")} style={primaryButtonStyle}>Enter Dashboard</button>
+    </div>
+  );
+
+  // --- ROUTER LOGIC ---
+  if (step === 0) return <Landing />;
+  if (step === 1) return <StyleSelection />;
+  if (step === 3 || step === 2) return <GoalSetting />; // Skipping exp for now
+  if (step === 4) return <DashboardPreview />;
 }
 
-const inputStyle = { width: "100%", background: "#050505", border: "1px solid #333", color: "#fff", padding: "12px", borderRadius: "10px", marginBottom: "10px", boxSizing: "border-box" };
+// --- STYLES (Apple Aesthetic) ---
+const containerStyle = {
+  background: '#000',
+  color: '#fff',
+  minHeight: '100vh',
+  padding: '40px 25px',
+  display: 'flex',
+  flexDirection: 'column',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+};
+
+const ProgressBar = ({ progress }) => (
+  <div style={{ background: '#222', height: '4px', width: '100%', borderRadius: '10px', marginBottom: '40px' }}>
+    <div style={{ background: '#00ff9c', height: '100%', width: `${progress}%`, borderRadius: '10px', transition: '0.3s' }} />
+  </div>
+);
+
+const titleStyle = { fontSize: '28px', fontWeight: 'bold', marginBottom: '12px', lineHeight: '1.2' };
+const subTitleStyle = { color: '#888', fontSize: '16px', marginBottom: '30px' };
+
+const cardStyle = {
+  background: '#1C1C1E',
+  padding: '20px',
+  borderRadius: '16px',
+  border: '1px solid #2C2C2E',
+  marginBottom: '15px',
+  cursor: 'pointer'
+};
+
+const activeCardStyle = {
+  ...cardStyle,
+  border: '2px solid #00ff9c',
+  background: 'rgba(0, 255, 156, 0.05)'
+};
+
+const primaryButtonStyle = {
+  background: '#fff',
+  color: '#000',
+  border: 'none',
+  padding: '20px',
+  borderRadius: '16px',
+  fontSize: '18px',
+  fontWeight: 'bold',
+  width: '100%',
+  marginTop: 'auto'
+};
+
+const inputStyle = { width: "100%", background: "#111", border: "1px solid #222", color: "#fff", padding: "14px", borderRadius: "12px", marginBottom: "12px", boxSizing: "border-box", fontSize: "16px" };
